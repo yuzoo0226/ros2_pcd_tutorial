@@ -14,6 +14,14 @@ public:
         subscription_ = this->create_subscription<sensor_msgs::msg::PointCloud2>(
             "point_cloud", 10, std::bind(&VoxelGridProcessor::pointCloudCallback, this, std::placeholders::_1));
         publisher_ = this->create_publisher<sensor_msgs::msg::PointCloud2>("voxel_grid", 10);
+
+        this->declare_parameter<float>("leaf_size_x", 0.1);
+        this->declare_parameter<float>("leaf_size_y", 0.1);
+        this->declare_parameter<float>("leaf_size_z", 0.1);
+
+        leaf_size_x_ = this->get_parameter("leaf_size_x").as_double();
+        leaf_size_y_ = this->get_parameter("leaf_size_y").as_double();
+        leaf_size_z_ = this->get_parameter("leaf_size_z").as_double();
     }
 
 private:
@@ -25,7 +33,7 @@ private:
         pcl::PointCloud<pcl::PointXYZ>::Ptr cloud_filtered(new pcl::PointCloud<pcl::PointXYZ>);
         pcl::VoxelGrid<pcl::PointXYZ> sor;
         sor.setInputCloud(cloud);
-        sor.setLeafSize(0.1f, 0.1f, 0.1f);
+        sor.setLeafSize(static_cast<float>(leaf_size_x_), static_cast<float>(leaf_size_y_), static_cast<float>(leaf_size_z_));
         sor.filter(*cloud_filtered);
 
         sensor_msgs::msg::PointCloud2 output;
@@ -38,6 +46,10 @@ private:
 
     rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr subscription_;
     rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr publisher_;
+
+    double leaf_size_x_;
+    double leaf_size_y_;
+    double leaf_size_z_;
 };
 
 int main(int argc, char * argv[])
